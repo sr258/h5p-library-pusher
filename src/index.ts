@@ -3,8 +3,9 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
+import * as os from 'os';
 
-const token = process.env['NPM_TOKEN'];
+const token = process.env['NPM_AUTH_TOKEN'];
 const npmUser = process.env['NPM_USER'];
 const dryRun = process.env['DRY_RUN'] === 'true';
 const libDir = path.resolve('working_dir/libraries');
@@ -58,7 +59,7 @@ async function main() {
     if (!token) {
         console.error(
             chalk.red(
-                'Incorrect parameters: You must pass a NPM token with the environment variable NPM_TOKEN!'
+                'Incorrect parameters: You must pass a NPM token with the environment variable NPM_AUTH_TOKEN!'
             )
         );
         process.exit(1);
@@ -90,6 +91,12 @@ async function main() {
     );
 
     await editor.contentTypeCache.forceUpdate();
+
+    await fsExtra.writeFile(
+        path.join(os.homedir(), '.npmrc'),
+        `//registry.npmjs.org/:_authToken=${token}`,
+        { encoding: 'utf8' }
+    );
 
     try {
         let errors = 0;
@@ -141,7 +148,7 @@ async function main() {
                 );
                 try {
                     execSync(
-                        `npm publish --access public${
+                        `npm publish --access=public${
                             dryRun ? ' --dry-run' : ''
                         }`,
                         {
