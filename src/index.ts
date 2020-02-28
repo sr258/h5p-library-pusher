@@ -30,7 +30,7 @@ function dependenciesFromLibraryInfo(
         .reduce((prev, curr) => {
             prev[
                 machineNameToMirrorPackageName(curr.machineName)
-            ] = `${curr.majorVersion}.${curr.minorVersion}.0`;
+            ] = `${curr.majorVersion}.${curr.minorVersion}.x`;
             return prev;
         }, {});
 }
