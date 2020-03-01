@@ -1,7 +1,7 @@
 version: '3'
 services:  
   h5p-library-pusher:
-    image: sr258/h5p-library-pusher:try1
+    image: sr258/h5p-library-pusher:0.1.0
     restart: unless-stopped
     volumes:
     - library-cache:/usr/src/app/working_dir
