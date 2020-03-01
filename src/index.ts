@@ -4,11 +4,16 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
 import * as os from 'os';
+import versionExists from 'version-exists';
 
 const token = process.env['NPM_AUTH_TOKEN'];
 const npmUser = process.env['NPM_USER'];
 const dryRun = process.env['DRY_RUN'] === 'true';
-const libDir = path.resolve('working_dir/libraries');
+const workingDir =
+    process.env['H5P_WORKING_DIR'] || path.resolve('working_dir');
+const configPath = process.env['H5P_CONFIG'] || path.resolve('h5p-config.json');
+
+const libDir = path.join(workingDir, 'libraries');
 
 const dummyUser = {
     id: '1',
@@ -73,20 +78,21 @@ async function main() {
         process.exit(1);
     }
 
+    // create empty config file if it doesn't exist yet
+    if (!(await fsExtra.pathExists(configPath))) {
+        await fsExtra.writeJSON(configPath, {});
+    }
+
     const editor = new H5P.H5PEditor(
         new H5P.fsImplementations.InMemoryStorage(),
-        new H5P.EditorConfig(
-            new H5P.fsImplementations.JsonStorage(
-                path.resolve('h5p-config.json')
-            )
-        ),
+        new H5P.EditorConfig(new H5P.fsImplementations.JsonStorage(configPath)),
         new H5P.fsImplementations.FileLibraryStorage(libDir),
         new H5P.fsImplementations.FileContentStorage(
-            path.resolve('working_dir/content')
+            path.join(workingDir, 'content')
         ),
         new H5P.TranslationService({}, {}),
         new H5P.fsImplementations.DirectoryTemporaryFileStorage(
-            path.resolve('working_dir/temp')
+            path.join(workingDir, 'temp')
         )
     );
 
@@ -146,6 +152,16 @@ async function main() {
                     path.join(packageDir, 'package.json'),
                     packageJson
                 );
+                if (
+                    await versionExists(packageJson.name, packageJson.version)
+                ) {
+                    console.log(
+                        chalk.yellow(
+                            `${packageJson.name} ${packageJson.version} already published on NPM. Skipping.`
+                        )
+                    );
+                    continue;
+                }
                 try {
                     execSync(
                         `npm publish --access=public${
