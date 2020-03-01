@@ -9,10 +9,6 @@ services:
     environment:
     - H5P_CONFIG=/usr/src/app/h5p-config/h5p-config.json
     - H5P_WORKING_DIR=/usr/src/app/working_dir
-    - NPM_USER=h5p-hub-mirror
-    - NPM_AUTH_TOKEN=b16792ed-8f6f-474f-afb7-bc69b45c6a8c
-    expose:
-    - "80"
 volumes:
   library-cache: {}
   h5p-config: {}
